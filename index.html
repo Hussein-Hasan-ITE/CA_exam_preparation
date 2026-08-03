@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مراجعة بنيان الحاسوب الشاملة</title>
+    <script src="data.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7fb;
+            --card-bg: #ffffff;
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --text-main: #333333;
+            --text-muted: #7f8c8d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        header h1 { color: var(--primary); margin: 0 0 10px 0; }
+
+        /* --- SETUP SCREEN & STATS STYLES --- */
+        #setup-screen { text-align: center; padding: 10px; }
+        
+        select {
+            width: 100%; padding: 15px; font-size: 1.1em;
+            border-radius: 10px; border: 2px solid var(--accent);
+            margin: 20px 0; font-family: inherit;
+        }
+
+        .stats-panel {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: right;
+        }
+
+        .stats-panel h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #ddd; padding-bottom: 10px;}
+        .stat-item {
+            display: flex; justify-content: space-between;
+            padding: 10px 0; border-bottom: 1px dashed #ddd;
+        }
+        .stat-item:last-child { border-bottom: none; }
+        .stat-badge {
+            background-color: var(--accent); color: white;
+            padding: 3px 10px; border-radius: 15px; font-size: 0.9em;
+        }
+
+        /* --- QUIZ UI STYLES --- */
+        #quiz-screen { display: none; }
+        
+        .progress-bar-container {
+            width: 100%; background-color: #eee; border-radius: 10px;
+            height: 10px; margin-bottom: 20px; overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%; background-color: var(--accent);
+            width: 0%; transition: width 0.4s ease;
+        }
+
+        .quiz-header-stats {
+            display: flex; justify-content: space-between;
+            color: var(--text-muted); font-weight: bold; margin-bottom: 20px;
+        }
+
+        .question-box { margin-bottom: 25px; }
+
+        .module-badge {
+            display: inline-block; background-color: #e8f4f8;
+            color: var(--accent); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.85em; font-weight: bold; margin-bottom: 15px;
+        }
+
+        .stem {
+            background-color: #f8f9fa; padding: 15px;
+            border-right: 4px solid var(--accent); border-radius: 5px;
+            margin-bottom: 15px; font-size: 1.05em; line-height: 1.6;
+        }
+
+        .question-text {
+            font-size: 1.3em; font-weight: bold;
+            color: var(--primary); margin-bottom: 20px;
+        }
+
+        .options { display: flex; flex-direction: column; gap: 10px; }
+
+        .option-btn {
+            background-color: white; border: 2px solid #e0e0e0;
+            padding: 15px 20px; border-radius: 10px; font-size: 1.1em;
+            cursor: pointer; text-align: right; transition: all 0.2s ease;
+            font-family: inherit; color: var(--text-main);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--accent); background-color: #f0f8ff;
+            transform: translateX(-5px);
+        }
+
+        .option-btn.correct { background-color: var(--success); border-color: var(--success); color: white; }
+        .option-btn.wrong { background-color: var(--danger); border-color: var(--danger); color: white; }
+
+        .explanation {
+            display: none; margin-top: 25px; padding: 20px;
+            background-color: #e8f6f3; border-radius: 10px;
+            border: 1px solid #b2e0d3; animation: fadeIn 0.5s;
+        }
+
+        .explanation h4 { margin-top: 0; color: #16a085; }
+        .explanation .errors { margin-top: 15px; color: #c0392b; font-size: 0.95em; }
+
+        .action-btn {
+            width: 100%; background-color: var(--accent); color: white;
+            border: none; padding: 15px; border-radius: 10px; font-size: 1.2em;
+            font-weight: bold; margin-top: 25px; cursor: pointer; transition: background-color 0.2s;
+        }
+        .action-btn:hover { background-color: #2980b9; }
+        
+        #next-btn { display: none; }
+        #results-screen { display: none; text-align: center; }
+        
+        .score-circle {
+            width: 150px; height: 150px; border-radius: 50%;
+            background-color: var(--accent); color: white;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 3em; font-weight: bold; margin: 0 auto 20px auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>بنك أسئلة بنيان الحاسوب</h1>
+        </header>
+
+        <!-- Setup Screen -->
+        <div id="setup-screen">
+            <h2>اختر المحاضرة للاختبار:</h2>
+            <select id="module-selector">
+                <option value="all">مراجعة شاملة (جميع الأسئلة)</option>
+            </select>
+            <button class="action-btn" onclick="startQuiz()">ابدأ المراجعة ➔</button>
+
+            <!-- Stats Panel -->
+            <div class="stats-panel">
+                <h3>إحصائيات الأداء السابقة 📈</h3>
+                <div id="stats-container">
+                    <p style="color: #7f8c8d; text-align: center;">لم تقم بإجراء أي اختبارات بعد.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen">
+            <div class="quiz-header-stats">
+                <span id="question-counter">السؤال 1</span>
+                <span id="score-counter">النقاط: 0</span>
+            </div>
+            
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="question-box">
+                <div class="module-badge" id="q-module-badge">المحاضرة</div>
+                <div class="stem" id="q-stem"></div>
+                <div class="question-text" id="q-text"></div>
+                <div class="options" id="options-container"></div>
+            </div>
+
+            <div class="explanation" id="explanation-box">
+                <h4>التحليل والاشتقاق:</h4>
+                <p id="exp-derivation"></p>
+                <div class="errors">
+                    <strong>الأخطاء الشائعة: </strong> <span id="exp-errors"></span>
+                </div>
+            </div>
+
+            <button class="action-btn" id="next-btn" onclick="nextQuestion()">السؤال التالي ➔</button>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen">
+            <h2>انتهى الاختبار!</h2>
+            <div class="score-circle" id="final-score"></div>
+            <p id="results-message">لقد أتممت المراجعة بنجاح.</p>
+            <button class="action-btn" style="margin-top: 30px;" onclick="location.reload()">العودة للقائمة الرئيسية ↻</button>
+        </div>
+    </div>
+
+    <script>
+        let currentExamData = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+        let activeModuleKey = ""; // Tracks which module is currently being tested for stats
+
+        const letterToIndex = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+
+        // Initialize App
+        window.onload = function() {
+            populateDropdown();
+            renderStats();
+        };
+
+        function populateDropdown() {
+            const selector = document.getElementById('module-selector');
+            modules.forEach((mod, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.text = `${mod.title} (${mod.questions.length} أسئلة)`;
+                selector.appendChild(option);
+            });
+        }
+
+        // --- STATS LOGIC (localStorage) ---
+        function getSavedStats() {
+            return JSON.parse(localStorage.getItem('archAppStats')) || {};
+        }
+
+        function saveStat(moduleName, finalScore, totalQs) {
+            let stats = getSavedStats();
+            if (!stats[moduleName]) {
+                stats[moduleName] = { highestScore: 0, totalQuestions: totalQs, attempts: 0 };
+            }
+            stats[moduleName].attempts += 1;
+            
+            // Only update highest score if the new score is better
+            if (finalScore > stats[moduleName].highestScore) {
+                stats[moduleName].highestScore = finalScore;
+            }
+            // Always update total questions in case data.js was updated with new questions
+            stats[moduleName].totalQuestions = totalQs; 
+            
+            localStorage.setItem('archAppStats', JSON.stringify(stats));
+        }
+
+        function renderStats() {
+            const stats = getSavedStats();
+            const container = document.getElementById('stats-container');
+            
+            if (Object.keys(stats).length > 0) {
+                container.innerHTML = ''; // Clear default message
+                
+                for (const [modName, data] of Object.entries(stats)) {
+                    const percentage = Math.round((data.highestScore / data.totalQuestions) * 100);
+                    
+                    const statDiv = document.createElement('div');
+                    statDiv.className = 'stat-item';
+                    statDiv.innerHTML = `
+                        <span>${modName} <small style="color:#7f8c8d;">(${data.attempts} محاولات)</small></span>
+                        <span class="stat-badge">${data.highestScore} / ${data.totalQuestions} (${percentage}%)</span>
+                    `;
+                    container.appendChild(statDiv);
+                }
+            }
+        }
+
+        // --- QUIZ LOGIC ---
+        function startQuiz() {
+            const selector = document.getElementById('module-selector');
+            const selectedValue = selector.value;
+            currentExamData = []; 
+
+            if (selectedValue === 'all') {
+                activeModuleKey = "مراجعة شاملة";
+                modules.forEach(mod => {
+                    mod.questions.forEach(q => {
+                        currentExamData.push({...q, moduleTitle: mod.title});
+                    });
+                });
+            } else {
+                const selectedModule = modules[selectedValue];
+                activeModuleKey = selectedModule.title;
+                selectedModule.questions.forEach(q => {
+                    currentExamData.push({...q, moduleTitle: selectedModule.title});
+                });
+            }
+
+            // Shuffle questions
+            currentExamData.sort(() => Math.random() - 0.5);
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            answered = false;
+            const q = currentExamData[currentQuestionIndex];
+            
+            document.getElementById('q-module-badge').innerText = q.moduleTitle;
+            document.getElementById('question-counter').innerText = `السؤال ${currentQuestionIndex + 1} من ${currentExamData.length}`;
+            document.getElementById('score-counter').innerText = `النقاط: ${score}`;
+            
+            const progress = (currentQuestionIndex / currentExamData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            document.getElementById('q-stem').innerText = q.stem;
+            document.getElementById('q-text').innerText = q.question;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = ''; 
+
+            q.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = choice;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanation-box').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            if (answered) return;
+            answered = true;
+
+            const q = currentExamData[currentQuestionIndex];
+            const correctIndex = letterToIndex[q.correct];
+            const allButtons = document.querySelectorAll('.option-btn');
+
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === correctIndex) {
+                btnElement.classList.add('correct');
+                score++;
+                document.getElementById('score-counter').innerText = `النقاط: ${score}`;
+            } else {
+                btnElement.classList.add('wrong');
+                allButtons[correctIndex].classList.add('correct');
+            }
+
+            document.getElementById('exp-derivation').innerText = q.derivation;
+            document.getElementById('exp-errors').innerText = q.errors;
+            document.getElementById('explanation-box').style.display = 'block';
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentExamData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('results-screen').style.display = 'block';
+            
+            // Save the stats to local storage
+            saveStat(activeModuleKey, score, currentExamData.length);
+
+            const finalScoreElem = document.getElementById('final-score');
+            finalScoreElem.innerText = `${score} / ${currentExamData.length}`;
+            document.getElementById('progress-bar').style.width = `100%`;
+            
+            // Dynamic message based on performance
+            const percentage = score / currentExamData.length;
+            const messageElem = document.getElementById('results-message');
+            if (percentage >= 0.9) {
+                messageElem.innerText = "أداء ممتاز! أنت مستعد تماماً لهذا الجزء.";
+            } else if (percentage >= 0.7) {
+                messageElem.innerText = "أداء جيد، لكن راجع الأخطاء الشائعة لضمان العلامة الكاملة.";
+            } else {
+                messageElem.innerText = "تحتاج إلى المزيد من المراجعة. اقرأ التحليلات بعناية وأعد المحاولة.";
+            }
+        }
+    </script>
+</body>
+</html>
