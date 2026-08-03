@@ -7,6 +7,7 @@
     <script src="data.js"></script>
     <style>
         :root {
+            /* Light Mode Variables */
             --bg-color: #f4f7fb;
             --card-bg: #ffffff;
             --primary: #2c3e50;
@@ -15,6 +16,24 @@
             --danger: #e74c3c;
             --text-main: #333333;
             --text-muted: #7f8c8d;
+            --box-bg: #f8f9fa;
+            --border-color: #e0e0e0;
+            --exp-bg: #e8f6f3;
+            --exp-border: #b2e0d3;
+        }
+
+        /* --- DARK MODE VARIABLES --- */
+        body.dark-mode {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary: #64b5f6;
+            --accent: #1976d2;
+            --text-main: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --box-bg: #2a2a2a;
+            --border-color: #444444;
+            --exp-bg: #0d2a24;
+            --exp-border: #164d41;
         }
 
         body {
@@ -27,6 +46,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .container {
@@ -37,12 +57,27 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             padding: 30px;
             overflow: hidden;
+            position: relative;
+            transition: background-color 0.3s;
         }
+
+        /* Theme Toggle Button */
+        #theme-toggle {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #theme-toggle:hover { transform: scale(1.1); }
 
         header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 15px;
         }
 
@@ -55,21 +90,23 @@
             width: 100%; padding: 15px; font-size: 1.1em;
             border-radius: 10px; border: 2px solid var(--accent);
             margin: 20px 0; font-family: inherit;
+            background-color: var(--card-bg);
+            color: var(--text-main);
         }
 
         .stats-panel {
-            background-color: #f8f9fa;
-            border: 1px solid #e0e0e0;
+            background-color: var(--box-bg);
+            border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 20px;
             margin-top: 30px;
             text-align: right;
         }
 
-        .stats-panel h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #ddd; padding-bottom: 10px;}
+        .stats-panel h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 10px;}
         .stat-item {
             display: flex; justify-content: space-between;
-            padding: 10px 0; border-bottom: 1px dashed #ddd;
+            padding: 10px 0; border-bottom: 1px dashed var(--border-color);
         }
         .stat-item:last-child { border-bottom: none; }
         .stat-badge {
@@ -81,7 +118,7 @@
         #quiz-screen { display: none; }
         
         .progress-bar-container {
-            width: 100%; background-color: #eee; border-radius: 10px;
+            width: 100%; background-color: var(--border-color); border-radius: 10px;
             height: 10px; margin-bottom: 20px; overflow: hidden;
         }
 
@@ -98,13 +135,14 @@
         .question-box { margin-bottom: 25px; }
 
         .module-badge {
-            display: inline-block; background-color: #e8f4f8;
+            display: inline-block; background-color: var(--box-bg);
+            border: 1px solid var(--accent);
             color: var(--accent); padding: 5px 15px; border-radius: 20px;
             font-size: 0.85em; font-weight: bold; margin-bottom: 15px;
         }
 
         .stem {
-            background-color: #f8f9fa; padding: 15px;
+            background-color: var(--box-bg); padding: 15px;
             border-right: 4px solid var(--accent); border-radius: 5px;
             margin-bottom: 15px; font-size: 1.05em; line-height: 1.6;
         }
@@ -117,28 +155,28 @@
         .options { display: flex; flex-direction: column; gap: 10px; }
 
         .option-btn {
-            background-color: white; border: 2px solid #e0e0e0;
+            background-color: var(--card-bg); border: 2px solid var(--border-color);
             padding: 15px 20px; border-radius: 10px; font-size: 1.1em;
             cursor: pointer; text-align: right; transition: all 0.2s ease;
             font-family: inherit; color: var(--text-main);
         }
 
         .option-btn:hover:not(:disabled) {
-            border-color: var(--accent); background-color: #f0f8ff;
+            border-color: var(--accent); background-color: var(--box-bg);
             transform: translateX(-5px);
         }
 
-        .option-btn.correct { background-color: var(--success); border-color: var(--success); color: white; }
-        .option-btn.wrong { background-color: var(--danger); border-color: var(--danger); color: white; }
+        .option-btn.correct { background-color: var(--success) !important; border-color: var(--success) !important; color: white !important; }
+        .option-btn.wrong { background-color: var(--danger) !important; border-color: var(--danger) !important; color: white !important; }
 
         .explanation {
             display: none; margin-top: 25px; padding: 20px;
-            background-color: #e8f6f3; border-radius: 10px;
-            border: 1px solid #b2e0d3; animation: fadeIn 0.5s;
+            background-color: var(--exp-bg); border-radius: 10px;
+            border: 1px solid var(--exp-border); animation: fadeIn 0.5s;
         }
 
         .explanation h4 { margin-top: 0; color: #16a085; }
-        .explanation .errors { margin-top: 15px; color: #c0392b; font-size: 0.95em; }
+        .explanation .errors { margin-top: 15px; color: #e74c3c; font-size: 0.95em; }
 
         .action-btn {
             width: 100%; background-color: var(--accent); color: white;
@@ -166,6 +204,8 @@
 <body>
 
     <div class="container">
+        <button id="theme-toggle" onclick="toggleTheme()" title="تغيير المظهر">🌙</button>
+        
         <header>
             <h1>بنك أسئلة بنيان الحاسوب</h1>
         </header>
@@ -182,7 +222,7 @@
             <div class="stats-panel">
                 <h3>إحصائيات الأداء السابقة 📈</h3>
                 <div id="stats-container">
-                    <p style="color: #7f8c8d; text-align: center;">لم تقم بإجراء أي اختبارات بعد.</p>
+                    <p style="color: var(--text-muted); text-align: center;">لم تقم بإجراء أي اختبارات بعد.</p>
                 </div>
             </div>
         </div>
@@ -230,12 +270,27 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let answered = false;
-        let activeModuleKey = ""; // Tracks which module is currently being tested for stats
+        let activeModuleKey = "";
 
+        // Map A, B, C, D back to array indexes for checking correct answers
         const letterToIndex = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
 
-        // Initialize App
+        // --- THEME LOGIC ---
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            document.getElementById('theme-toggle').innerText = isDark ? '☀️' : '🌙';
+            localStorage.setItem('archAppTheme', isDark ? 'dark' : 'light');
+        }
+
+        // --- INITIALIZATION ---
         window.onload = function() {
+            // Apply saved theme
+            if (localStorage.getItem('archAppTheme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').innerText = '☀️';
+            }
             populateDropdown();
             renderStats();
         };
@@ -250,7 +305,7 @@
             });
         }
 
-        // --- STATS LOGIC (localStorage) ---
+        // --- STATS LOGIC ---
         function getSavedStats() {
             return JSON.parse(localStorage.getItem('archAppStats')) || {};
         }
@@ -261,14 +316,10 @@
                 stats[moduleName] = { highestScore: 0, totalQuestions: totalQs, attempts: 0 };
             }
             stats[moduleName].attempts += 1;
-            
-            // Only update highest score if the new score is better
             if (finalScore > stats[moduleName].highestScore) {
                 stats[moduleName].highestScore = finalScore;
             }
-            // Always update total questions in case data.js was updated with new questions
             stats[moduleName].totalQuestions = totalQs; 
-            
             localStorage.setItem('archAppStats', JSON.stringify(stats));
         }
 
@@ -277,15 +328,13 @@
             const container = document.getElementById('stats-container');
             
             if (Object.keys(stats).length > 0) {
-                container.innerHTML = ''; // Clear default message
-                
+                container.innerHTML = '';
                 for (const [modName, data] of Object.entries(stats)) {
                     const percentage = Math.round((data.highestScore / data.totalQuestions) * 100);
-                    
                     const statDiv = document.createElement('div');
                     statDiv.className = 'stat-item';
                     statDiv.innerHTML = `
-                        <span>${modName} <small style="color:#7f8c8d;">(${data.attempts} محاولات)</small></span>
+                        <span>${modName} <small style="color:var(--text-muted);">(${data.attempts} محاولات)</small></span>
                         <span class="stat-badge">${data.highestScore} / ${data.totalQuestions} (${percentage}%)</span>
                     `;
                     container.appendChild(statDiv);
@@ -314,7 +363,7 @@
                 });
             }
 
-            // Shuffle questions
+            // Shuffle all questions
             currentExamData.sort(() => Math.random() - 0.5);
 
             document.getElementById('setup-screen').style.display = 'none';
@@ -340,11 +389,19 @@
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = ''; 
 
-            q.choices.forEach((choice, index) => {
+            // Identify the text of the correct answer before shuffling
+            const correctText = q.choices[letterToIndex[q.correct]];
+            
+            // Create a copy of choices and shuffle them
+            let shuffledChoices = [...q.choices];
+            shuffledChoices.sort(() => Math.random() - 0.5);
+
+            shuffledChoices.forEach((choiceText) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
-                btn.innerText = choice;
-                btn.onclick = () => checkAnswer(index, btn);
+                btn.innerText = choiceText;
+                // Pass both the selected text and correct text for comparison
+                btn.onclick = () => checkAnswer(choiceText, correctText, btn);
                 optionsContainer.appendChild(btn);
             });
 
@@ -352,23 +409,27 @@
             document.getElementById('next-btn').style.display = 'none';
         }
 
-        function checkAnswer(selectedIndex, btnElement) {
+        function checkAnswer(selectedText, correctText, btnElement) {
             if (answered) return;
             answered = true;
 
             const q = currentExamData[currentQuestionIndex];
-            const correctIndex = letterToIndex[q.correct];
             const allButtons = document.querySelectorAll('.option-btn');
 
             allButtons.forEach(btn => btn.disabled = true);
 
-            if (selectedIndex === correctIndex) {
+            if (selectedText === correctText) {
                 btnElement.classList.add('correct');
                 score++;
                 document.getElementById('score-counter').innerText = `النقاط: ${score}`;
             } else {
                 btnElement.classList.add('wrong');
-                allButtons[correctIndex].classList.add('correct');
+                // Find the correct button and highlight it
+                allButtons.forEach(btn => {
+                    if (btn.innerText === correctText) {
+                        btn.classList.add('correct');
+                    }
+                });
             }
 
             document.getElementById('exp-derivation').innerText = q.derivation;
@@ -390,14 +451,12 @@
             document.getElementById('quiz-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'block';
             
-            // Save the stats to local storage
             saveStat(activeModuleKey, score, currentExamData.length);
 
             const finalScoreElem = document.getElementById('final-score');
             finalScoreElem.innerText = `${score} / ${currentExamData.length}`;
             document.getElementById('progress-bar').style.width = `100%`;
             
-            // Dynamic message based on performance
             const percentage = score / currentExamData.length;
             const messageElem = document.getElementById('results-message');
             if (percentage >= 0.9) {
