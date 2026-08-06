@@ -323,7 +323,33 @@
                 option.text = `${mod.title} (${mod.questions.length} أسئلة)`;
                 selector.appendChild(option);
             });
+
+            checkCorrectAnswerBalance();
         };
+
+        // Since options are always shown in fixed A->B->C->D order (see loadQuestion),
+        // the anti-gaming protection depends entirely on data.js varying which letter
+        // is correct across questions. This dev-only console check flags any module
+        // where one letter dominates too heavily, so a lopsided question set (e.g.
+        // "correct" almost always "A") gets caught early instead of silently shipping.
+        function checkCorrectAnswerBalance() {
+            modules.forEach((mod) => {
+                const counts = { A: 0, B: 0, C: 0, D: 0 };
+                mod.questions.forEach((q) => {
+                    if (counts.hasOwnProperty(q.correct)) counts[q.correct]++;
+                });
+                const total = mod.questions.length;
+                if (total === 0) return;
+                const maxShare = Math.max(...Object.values(counts)) / total;
+                if (maxShare > 0.5) {
+                    console.warn(
+                        `[Answer-balance check] "${mod.title}": one letter makes up ` +
+                        `${Math.round(maxShare * 100)}% of correct answers ${JSON.stringify(counts)}. ` +
+                        `Consider varying "correct" more across this module's questions.`
+                    );
+                }
+            });
+        }
 
         // Called when user clicks "Start"
         function startQuiz() {
@@ -358,16 +384,6 @@
             loadQuestion();
         }
 
-        // Fisher-Yates shuffle, returns a new shuffled array of indices
-        function shuffledIndices(n) {
-            const arr = Array.from({ length: n }, (_, i) => i);
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
         function loadQuestion() {
             answered = false;
             const q = currentExamData[currentQuestionIndex];
@@ -386,17 +402,20 @@
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
 
-            // IMPORTANT: we shuffle the on-screen ORDER of the 4 options each time
-            // this question loads, but each option keeps its ORIGINAL letter badge
-            // (A/B/C/D) tied to its original content. This means:
-            //   1) A student can never learn "the answer is always in slot 1" -
-            //      the visual position of each option changes every render.
-            //   2) The derivation/errors text (which says "Option B does X") still
-            //      correctly matches whatever is labeled "B" on screen, because the
-            //      badge travels with the content, not with the screen position.
-            const displayOrder = shuffledIndices(q.choices.length);
-
-            displayOrder.forEach((originalIndex) => {
+            // NOTE ON ANTI-GAMING STRATEGY:
+            // Options are always rendered in fixed A -> B -> C -> D order, top to
+            // bottom, every single time. We deliberately do NOT shuffle the visual
+            // position of the options, because scrambling them (so "A" might appear
+            // last) makes the quiz confusing to read and breaks the natural mapping
+            // between the on-screen order and the explanation text below.
+            //
+            // Instead, the fix lives in the DATA: data.js is written so the
+            // "correct" letter is deliberately varied across questions (not always
+            // "A"), so a student clicking the same visual slot every time will not
+            // score well. This keeps the UI simple and readable while still
+            // preventing position-based guessing. See the bottom of this file for
+            // a console self-check that flags any module where this balance drifts.
+            q.choices.forEach((choiceText, originalIndex) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.dataset.originalIndex = originalIndex;
@@ -407,7 +426,7 @@
 
                 const textSpan = document.createElement('span');
                 textSpan.className = 'option-text';
-                textSpan.innerText = q.choices[originalIndex];
+                textSpan.innerText = choiceText;
 
                 btn.appendChild(letterSpan);
                 btn.appendChild(textSpan);
